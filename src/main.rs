@@ -1,10 +1,15 @@
 use crate::benchmarks::benchmark_newton_inv_sqrt;
 use crate::float::FloatPlaintext;
 use crate::newton::InvSqrtApproximationSettings;
-use crate::paillier_crypto::{Cryptosystem, GetBitsSettings, TestSetup};
+use crate::paillier_crypto::{Cryptosystem, GetBitsSettings, TestSetup, DEBUG_KEYS};
 use crate::traits::{CryptoEncrypt, Result};
 use itertools::Either::Left;
 use rand::{distributions::Uniform, thread_rng, Rng};
+use serde::{Deserialize, Serialize};
+use serde_json::from_reader;
+use std::fs::File;
+use std::io::BufReader;
+use either::Either;
 
 mod benchmarks;
 mod big_int_extension;
@@ -21,15 +26,43 @@ mod traits;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    benchmarks().await
+
+    let file = File::open("settings.json")?;
+    let reader = BufReader::new(file);
+    let settings: Vec<BenchmarkSettings> = from_reader(reader)?;
+
+
+    for setting in settings {
+        benchmarks(setting).await?
+    }
+    Ok(())
 }
 
+fn map_simple_starting_value(s: &SimpleStartingValueOptions) -> Either<InvSqrtApproximationSettings,f64> {
+
+    let get_bits = match s.get_bits {
+        SimpleBitOptions::Simple { bits_per_communication } => {
+            GetBitsSettings::Simple {
+                bits_per_communication
+            }
+        }
+        SimpleBitOptions::Approximation {} => {
+            GetBitsSettings::Approximation {}
+        }
+    };
+
+    Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
+        get_bits,
+        advanced_inverse_approximation: Some(s.advanced_inverse_approximation)
+    })
 
 
-async fn benchmarks() -> Result<()> {
-    let t = TestSetup::new(20);
-    let e_key = &t.e_key.clone();
-    let range: Vec<f64> = (0..100)
+}
+
+async fn benchmarks(settings: BenchmarkSettings) -> Result<()> {
+
+    let e_key = &DEBUG_KEYS.0.clone();
+    let range: Vec<f64> = (0..settings.random_value_count)
         .map(|_| thread_rng().sample(Uniform::new(0.0, 2.0f64.powf(2.0))))
         .collect();
 
@@ -40,31 +73,12 @@ async fn benchmarks() -> Result<()> {
         .collect();
 
     let value_options = v1;
-    let iteration_options = vec![1,2,3,4,5,6,7,8,9,10];
-    let test_setups = vec![TestSetup::new(20)];
-
-    let inv_sqrt_starting_values = vec![
-        Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
-            get_bits: GetBitsSettings::Simple {
-                bits_per_communication: 1
-            },
-            advanced_inverse_approximation: Some(false)
-        }),
-        Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
-            get_bits: GetBitsSettings::Simple {
-                bits_per_communication: 1
-            },
-            advanced_inverse_approximation: Some(true)
-        }),
-        Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
-            get_bits: GetBitsSettings::Approximation {},
-            advanced_inverse_approximation: Some(false)
-        }),
-        Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
-            get_bits: GetBitsSettings::Approximation {},
-            advanced_inverse_approximation: Some(true)
-        })
-    ];
+    let iteration_options = settings.iteration_options;
+    let mut test_setups = vec![];
+    for delay_option in settings.delay_options {
+        test_setups.push(TestSetup::new(delay_option))
+    }
+    let inv_sqrt_starting_values: Vec<_> = settings.starting_values.iter().map(map_simple_starting_value).collect();
 
     println!("\n--- Inv Sqrt Benchmark ---");
 
@@ -83,4 +97,27 @@ async fn benchmarks() -> Result<()> {
         println!();
     }
     Ok(())
+}
+
+
+#[derive(Serialize,Deserialize, Debug)]
+enum SimpleBitOptions {
+    Simple {
+        bits_per_communication: usize,
+    },
+    Approximation {},
+}
+#[derive(Serialize,Deserialize, Debug)]
+struct SimpleStartingValueOptions{
+    get_bits: SimpleBitOptions,
+    advanced_inverse_approximation: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct BenchmarkSettings{
+    random_value_count: usize,
+    runs_per_value: usize,
+    iteration_options: Vec<usize>,
+    delay_options: Vec<u64>,
+    starting_values: Vec<SimpleStartingValueOptions>
 }

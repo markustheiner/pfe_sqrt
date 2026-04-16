@@ -1,5 +1,5 @@
 [package]
-name = "tests_rust"
+name = "PFE_square_root"
 version = "0.1.0"
 edition = "2021"
 
@@ -23,9 +23,5 @@ serde = "1.0.219"
 
 tracing = { version = "0.1.41" }
 tracing-opentelemetry = { version = "0.31.0" }
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
-opentelemetry = { version = "0.30.0" }
-opentelemetry_sdk = { version = "0.30.0", features = ["rt-tokio-current-thread", "jaeger_remote_sampler"] }
-opentelemetry-otlp = { version = "0.30.0", features = ["grpc-tonic", "metrics"] }
 serde_json = "1.0.140"
