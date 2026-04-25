@@ -24,7 +24,7 @@ use crate::debug::{ DebugSender};
 #[derive(Clone, Debug, Eq, PartialEq,Serialize,Deserialize)]
 pub enum SqrtApproximationSettings {
     Bits { get_bits: GetBitsSettings },
-    Christian { modify_randomness: Option<usize> },
+    Rough { modify_randomness: Option<usize> },
     Optimized {},
 }
 #[instrument]
@@ -83,9 +83,9 @@ async fn approx_sqrt<'a: 'static>(
                 CombineDirection::SmallIndexIsSmallValue,
             )
         }
-        SqrtApproximationSettings::Christian { modify_randomness } => {
+        SqrtApproximationSettings::Rough { modify_randomness } => {
             t.cryptosystem
-                .approx_sqrt_christian(
+                .approx_sqrt_rough(
                     e_key,
                     num_enc.mantissa_ciphertext.clone(),
                     modify_randomness,

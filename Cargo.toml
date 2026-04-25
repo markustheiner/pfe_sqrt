@@ -25,3 +25,4 @@ tracing = { version = "0.1.41" }
 tracing-opentelemetry = { version = "0.31.0" }
 
 serde_json = "1.0.140"
+anyhow = "1.0.102"

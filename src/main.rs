@@ -3,13 +3,13 @@ use crate::float::FloatPlaintext;
 use crate::newton::InvSqrtApproximationSettings;
 use crate::paillier_crypto::{Cryptosystem, GetBitsSettings, TestSetup, DEBUG_KEYS};
 use crate::traits::{CryptoEncrypt, Result};
+use either::Either;
 use itertools::Either::Left;
 use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use std::fs::File;
 use std::io::BufReader;
-use either::Either;
 
 mod benchmarks;
 mod big_int_extension;
@@ -23,14 +23,18 @@ mod randomness_provider;
 mod tests;
 mod traits;
 
-
 #[tokio::main]
 async fn main() -> Result<()> {
+    let file = File::open("settings.json").map_err(|e| match e.kind() {
+        std::io::ErrorKind::NotFound => {
+            anyhow::anyhow!("Settings file not found: make sure 'settings.json' exists in the current directory")
+        }
+        _ => anyhow::anyhow!("Failed to open 'settings.json': {}", e),
+    })?;
 
-    let file = File::open("settings.json")?;
     let reader = BufReader::new(file);
-    let settings: Vec<BenchmarkSettings> = from_reader(reader)?;
-
+    let settings: Vec<BenchmarkSettings> = from_reader(reader)
+        .map_err(|e| anyhow::anyhow!("Invalid settings format in 'settings.json': {}", e))?;
 
     for setting in settings {
         benchmarks(setting).await?
@@ -38,32 +42,43 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn map_simple_starting_value(s: &SimpleStartingValueOptions) -> Either<InvSqrtApproximationSettings,f64> {
+fn map_simple_starting_value(
+    s: &SimpleStartingValueOptions,
+) -> Either<InvSqrtApproximationSettings, f64> {
+    match s {
+        SimpleStartingValueOptions::Bitwise {
+            get_bits,
+            advanced_inverse_approximation,
+        } => {
+            let get_bits = match get_bits {
+                SimpleBitOptions::Simple {
+                    bits_per_communication,
+                } => GetBitsSettings::Simple {
+                    bits_per_communication: *bits_per_communication,
+                },
+                SimpleBitOptions::Approximation {} => GetBitsSettings::Approximation {},
+            };
 
-    let get_bits = match s.get_bits {
-        SimpleBitOptions::Simple { bits_per_communication } => {
-            GetBitsSettings::Simple {
-                bits_per_communication
-            }
+            Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
+                get_bits,
+                advanced_inverse_approximation: Some(*advanced_inverse_approximation),
+            })
         }
-        SimpleBitOptions::Approximation {} => {
-            GetBitsSettings::Approximation {}
+        SimpleStartingValueOptions::Linear { slope, offset } => {
+            Left(InvSqrtApproximationSettings::LinearApprox { slope: *slope, offset: *offset })
         }
-    };
-
-    Left(InvSqrtApproximationSettings::ApproxSqrtAndInv {
-        get_bits,
-        advanced_inverse_approximation: Some(s.advanced_inverse_approximation)
-    })
-
-
+    }
 }
 
 async fn benchmarks(settings: BenchmarkSettings) -> Result<()> {
-
     let e_key = &DEBUG_KEYS.0.clone();
     let range: Vec<f64> = (0..settings.random_value_count)
-        .map(|_| thread_rng().sample(Uniform::new(0.0, 2.0f64.powf(2.0))))
+        .map(|_| {
+            thread_rng().sample(Uniform::new(
+                settings.random_value_low,
+                settings.random_value_high,
+            ))
+        })
         .collect();
 
     let n1 = range;
@@ -78,7 +93,11 @@ async fn benchmarks(settings: BenchmarkSettings) -> Result<()> {
     for delay_option in settings.delay_options {
         test_setups.push(TestSetup::new(delay_option))
     }
-    let inv_sqrt_starting_values: Vec<_> = settings.starting_values.iter().map(map_simple_starting_value).collect();
+    let inv_sqrt_starting_values: Vec<_> = settings
+        .starting_values
+        .iter()
+        .map(map_simple_starting_value)
+        .collect();
 
     println!("\n--- Inv Sqrt Benchmark ---");
 
@@ -88,36 +107,44 @@ async fn benchmarks(settings: BenchmarkSettings) -> Result<()> {
         inv_sqrt_starting_values,
         test_setups,
         1,
+        settings.file_name
     )
-        .await?;
+    .await?;
 
     for x in inv_sqrt_results.combine_by_iterations_and_starting_value() {
         println!("Starting Value, Iterations: {:?}", x.0);
+
         x.1.print_combined_results();
         println!();
     }
     Ok(())
 }
 
-
-#[derive(Serialize,Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 enum SimpleBitOptions {
-    Simple {
-        bits_per_communication: usize,
-    },
+    Simple { bits_per_communication: usize },
     Approximation {},
 }
-#[derive(Serialize,Deserialize, Debug)]
-struct SimpleStartingValueOptions{
-    get_bits: SimpleBitOptions,
-    advanced_inverse_approximation: bool,
+#[derive(Serialize, Deserialize, Debug)]
+enum SimpleStartingValueOptions {
+    Bitwise {
+        get_bits: SimpleBitOptions,
+        advanced_inverse_approximation: bool,
+    },
+    Linear {
+        slope: f64,
+        offset: f64,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct BenchmarkSettings{
+struct BenchmarkSettings {
     random_value_count: usize,
+    random_value_low: f64,
+    random_value_high: f64,
     runs_per_value: usize,
     iteration_options: Vec<usize>,
     delay_options: Vec<u64>,
-    starting_values: Vec<SimpleStartingValueOptions>
+    starting_values: Vec<SimpleStartingValueOptions>,
+    file_name: String
 }

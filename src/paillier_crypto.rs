@@ -1426,7 +1426,7 @@ impl Cryptosystem {
     }
 
     #[instrument]
-    pub async fn approx_sqrt_christian<'a>(
+    pub async fn approx_sqrt_rough<'a>(
         self,
         e_key: &EncryptionKey,
         ct: IntCiphertext<'a>,

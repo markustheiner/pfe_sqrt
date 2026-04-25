@@ -1,1 +1,94 @@
-[{"random_value_count":100,"runs_per_value":1,"iteration_options":[1,2,3,4,5,6,7,8,9,10],"delay_options":[20],"starting_values":[{"get_bits":{"Simple":{"bits_per_communication":1}},"advanced_inverse_approximation":false},{"get_bits":{"Simple":{"bits_per_communication":1}},"advanced_inverse_approximation":true},{"get_bits":{"Approximation":{}},"advanced_inverse_approximation":false},{"get_bits":{"Approximation":{}},"advanced_inverse_approximation":true}]}]
+[
+  {
+    "file_name": "newton_inverse_sqrt.json",
+    "random_value_count": 100,
+    "random_value_low": 0.0,
+    "random_value_high": 4.0,
+    "runs_per_value": 1,
+    "iteration_options": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "delay_options": [
+      20
+    ],
+    "starting_values": [
+      {
+        "Bitwise": {
+          "get_bits": {
+            "Simple": {
+              "bits_per_communication": 1
+            }
+          },
+          "advanced_inverse_approximation": false
+        }
+      },
+      {
+        "Bitwise": {
+          "get_bits": {
+            "Simple": {
+              "bits_per_communication": 1
+            }
+          },
+          "advanced_inverse_approximation": true
+        }
+      },
+      {
+        "Bitwise": {
+          "get_bits": {
+            "Approximation": {}
+          },
+          "advanced_inverse_approximation": false
+        }
+      },
+      {
+        "Bitwise": {
+          "get_bits": {
+            "Approximation": {}
+          },
+          "advanced_inverse_approximation": true
+        }
+      }
+    ]
+  },
+  {
+    "file_name": "linear_approx_comparison.json",
+    "random_value_count": 100,
+    "random_value_low": 0.0,
+    "random_value_high": 4.0,
+    "runs_per_value": 1,
+    "iteration_options": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "delay_options": [
+      0,
+      20,
+      100
+    ],
+    "starting_values": [
+      {
+        "Linear": {
+          "slope": 0.0,
+          "offset": 0.09
+        }
+      }
+    ]
+  }
+]

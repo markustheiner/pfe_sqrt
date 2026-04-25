@@ -280,6 +280,7 @@ pub async fn benchmark_newton_inv_sqrt<'a: 'static>(
     starting_values: Vec<Either<InvSqrtApproximationSettings, f64>>,
     test_setups: Vec<TestSetup>,
     runs_per_benchmark: usize,
+    file_name: String,
 ) -> Result<BenchmarkResultSet> {
     let mut result_set = BenchmarkResultSet::new();
 
@@ -298,7 +299,7 @@ pub async fn benchmark_newton_inv_sqrt<'a: 'static>(
     progress_bar.set_message("Running Newton inverse sqrt benchmarks");
 
 
-    let mut file = OpenOptions::new().append(true).create(true).open("newton_inverse_sqrt.json")?;
+    let mut file = OpenOptions::new().append(true).create(true).open(file_name)?;
 
     for value in &value_options {
         for iterations in &iteration_options {
