@@ -1,6 +1,6 @@
 [
   {
-    "file_name": "newton_inverse_sqrt.json",
+    "file_name": "newton_inverse_sqrt.jsonl",
     "random_value_count": 100,
     "random_value_low": 0.0,
     "random_value_high": 4.0,
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "file_name": "linear_approx_comparison.json",
+    "file_name": "linear_approx_comparison.jsonl",
     "random_value_count": 100,
     "random_value_low": 0.0,
     "random_value_high": 4.0,
