@@ -7,10 +7,10 @@ This artifact contains benchmarks designed to measure the **performance** and **
 * **Tested Operating Systems:** Ubuntu 20.04 LTS and Ubuntu 24.04 LTS.
 * **Rust:** The [Rust toolchain](https://rust-lang.org/tools/install/) is required for compilation.
 * **Dendencies:** The code relies on the GNU Multiple Precision Arithmetic Library and standard build tools.
-```
-sudo apt-get update
-sudo apt-get install build-essential libgmp3-dev
-```
+   ```bash
+   sudo apt-get update
+   sudo apt-get install build-essential libgmp3-dev
+   ```
 
 
 
