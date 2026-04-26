@@ -1,4 +1,4 @@
-# Enhancing Private Function Evaluation via Interactive Protocols: Artifact
+# Enhancing Private Function Evaluation via Interactive Protocols
 
 This artifact contains benchmarks designed to measure the **performance** and **accuracy** of our interactive protocols for private square root calculation.
 
@@ -6,12 +6,13 @@ This artifact contains benchmarks designed to measure the **performance** and **
 
 * **Tested Operating Systems:** Ubuntu 20.04 LTS and Ubuntu 24.04 LTS.
 * **Rust:** The [Rust toolchain](https://rust-lang.org/tools/install/) is required for compilation.
-* **GMP:** The code relies on the GNU Multiple Precision Arithmetic Library.
-    ```bash
-    sudo apt-get install libgmp3-dev
+* **Dendencies:** The code relies on the GNU Multiple Precision Arithmetic Library and standard build tools.
+    ```
+    sudo apt-get update
+    sudo apt-get install build-essential libgmp3-dev
     ```
 
----
+
 
 ## Build and Execution
 
@@ -27,7 +28,7 @@ To run the benchmarks:
 
 **Execution Path Requirement:** The binary expects the `settings.json` file to be located in your **current working directory** (the location from which you run it).
 
----
+
 
 ## Configuration (`settings.json`)
 
@@ -72,7 +73,7 @@ This strategy initializes based on the bit-length of the input.
 ```
 
 
-**2. Linear Approximaion**
+**2. Linear Approximation**
 This strategy uses a linear function ($y = mx + b$) to determine the starting value.
 * `Linear`:
     * `slope`: `Float` - The $m$ coefficient.
@@ -86,7 +87,7 @@ This strategy uses a linear function ($y = mx + b$) to determine the starting va
   }
 }
 ```
----
+
 
 ## Results
 
@@ -96,11 +97,10 @@ Results are output in **JSON Lines (.jsonl)** format. Each line is an independen
 Each result line contains the following keys mapping to the protocol's output:
 
 * **`value`**: The plaintext input value being processed.
-* **`iterations`**: The number of newton iterations performed in this specific run.
+* **`iterations`**: The number of newton iterations performed in this run.
 * **`starting_value`**: A description of the approximation parameters used for this run.
 * **`test_setup`**: A collection of metadata describing the used test setup.
 * **`average_duration`**: The mean runtime for this setup (see `runs_per_value`).
 * **`percentage_deviation`**: The error between the private result and the actual square root.
 
-> [!NOTE]  
-> Because the output is appended line-by-line, you can analyze partial results even if the benchmark process is stopped before completion.
+Because the output is appended line-by-line, you can safely analyze partial results even if the benchmark process is interrupted or stopped before completion.
