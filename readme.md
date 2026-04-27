@@ -74,7 +74,7 @@ This strategy initializes based on the bit-length of the input.
 
 
 **2. Linear Approximation**
-This strategy uses a linear function ($y = mx + b$) to determine the starting value.
+This strategy uses a linear function ( $y = mx + b$ ) to determine the starting value.
 * `Linear`:
     * `slope`: `Float` - The $m$ coefficient.
     * `offset`: `Float` - The $b$ constant.
