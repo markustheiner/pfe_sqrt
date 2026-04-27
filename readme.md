@@ -12,22 +12,22 @@ This artifact contains benchmarks designed to measure the **performance** and **
    sudo apt-get install build-essential libgmp3-dev
    ```
 
-
-
 ## Build and Execution
 
-To build the benchmarks:
+
+### 1. Build the Benchmarks
+
+If you have just installed Rust, you may need to restart your terminal before the `cargo` command becomes available.
 ```bash
 cargo build -r
 ```
 
-To run the benchmarks:
+### 2. Run the Benchmarks
+
+The binary expects the `settings.json` file to be present in your **current working directory**. Ensure you are running the execution command from the root of the project.
 ```bash
 ./target/release/PFE_square_root
 ```
-
-**Execution Path Requirement:** The binary expects the `settings.json` file to be located in your **current working directory** (the location from which you run it).
-
 
 
 ## Configuration (`settings.json`)
